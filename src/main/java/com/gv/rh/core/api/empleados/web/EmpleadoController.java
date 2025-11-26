@@ -1,3 +1,4 @@
+// src/main/java/com/gv/rh/core/api/empleados/web/EmpleadoController.java
 package com.gv.rh.core.api.empleados.web;
 
 import com.gv.rh.core.api.empleados.application.EmpleadoService;
@@ -18,20 +19,22 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Empleados", description = "Gestión de empleados")
 @RestController
 @RequestMapping("/api/empleados")
-@CrossOrigin(origins = "http://localhost:5173") // Front React (Vite)
+@CrossOrigin(origins = "http://localhost:5173")
 @RequiredArgsConstructor
 public class EmpleadoController {
 
     private final EmpleadoService service;
 
-    @Operation(summary = "Listar empleados paginados")
+    @Operation(summary = "Listar empleados paginados (búsqueda + filtro activo opcionales)")
     @GetMapping
     public Page<EmpleadoResponse> listar(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Boolean activo
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return service.listar(pageable);
+        return service.listar(pageable, q, activo);
     }
 
     @Operation(summary = "Obtener un empleado por id")

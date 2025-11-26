@@ -12,8 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -21,19 +19,11 @@ public class EmpleadoService {
 
     private final EmpleadoRepository empleadoRepository;
 
-    // Listado simple (por si quieres usarlo en algún otro lado)
     @Transactional(readOnly = true)
-    public List<EmpleadoResponse> listar() {
-        return empleadoRepository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
-    // Listado paginado (el que usa el controller con page/size)
-    @Transactional(readOnly = true)
-    public Page<EmpleadoResponse> listar(Pageable pageable) {
-        return empleadoRepository.findAll(pageable)
+    public Page<EmpleadoResponse> listar(Pageable pageable, String q, Boolean activo) {
+        String term = (q == null || q.isBlank()) ? null : q.trim();
+        return empleadoRepository
+                .search(term, activo, pageable)
                 .map(this::toResponse);
     }
 
