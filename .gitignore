@@ -28,3 +28,6 @@ out/
 ### Gradle (por si usas)
 build/
 !
+
+# Config local
+src/main/resources/application.yml
