@@ -1,0 +1,30 @@
+### Maven / Spring Boot
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+### STS (Spring Tool Suite)
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+### NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### Gradle (por si usas)
+build/
+!
