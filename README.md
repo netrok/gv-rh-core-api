@@ -60,6 +60,7 @@ Por defecto, el proyecto está configurado para apuntar a:
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/bd_rh
-    username: postgres
-    password: riesenhammer
+    username: <TU_USUARIO>
+    password: <TU_PASSWORD>
     driver-class-name: org.postgresql.Driver
+
