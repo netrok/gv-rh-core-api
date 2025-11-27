@@ -1,8 +1,9 @@
-package com.gv.rh.core.api.security;
+package com.gv.rh.core.api.core.security;
 
 import com.gv.rh.core.api.auth.jwt.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -10,7 +11,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -43,6 +44,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/api/auth/login"
                         ).permitAll()
+                        // De momento empleados abiertos
                         .requestMatchers("/api/empleados/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -56,8 +58,8 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of(
-                "http://localhost:5173",
-                "http://localhost:4200"
+                "http://localhost:5173", // React
+                "http://localhost:4200"  // Angular
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
@@ -70,7 +72,8 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        // Soporta hashes con prefijo {bcrypt} como el que tienes en la tabla users
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     @Bean

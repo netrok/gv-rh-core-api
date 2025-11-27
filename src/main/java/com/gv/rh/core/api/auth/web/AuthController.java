@@ -6,6 +6,7 @@ import com.gv.rh.core.api.auth.jwt.JwtService;
 import com.gv.rh.core.api.auth.service.CustomUserDetailsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +44,6 @@ public class AuthController {
                     )
             );
 
-            // Guardamos la autenticación en el contexto de seguridad
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             var userDetails = userDetailsService.loadUserByUsername(request.username());
@@ -53,7 +53,6 @@ public class AuthController {
                     .map(a -> a.getAuthority())
                     .collect(Collectors.toList());
 
-            // Usamos el helper estático del DTO
             LoginResponse response = LoginResponse.bearer(
                     token,
                     expirationSeconds,
@@ -63,8 +62,25 @@ public class AuthController {
 
             return ResponseEntity.ok(response);
         } catch (BadCredentialsException ex) {
-            // Credenciales inválidas
             return ResponseEntity.status(401).build();
         }
+    }
+
+    @GetMapping("/me")
+    @Operation(
+            summary = "Información del usuario autenticado (whoami)",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<?> me(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        return ResponseEntity.ok(
+                new Object() {
+                    public final String username = authentication.getName();
+                    public final Object authorities = authentication.getAuthorities();
+                }
+        );
     }
 }
