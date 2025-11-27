@@ -44,8 +44,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/api/auth/login"
                         ).permitAll()
-                        // De momento empleados abiertos
-                        .requestMatchers("/api/empleados/**").permitAll()
+                        // TODO: cuando conectemos front, afinamos si algún GET va público
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
