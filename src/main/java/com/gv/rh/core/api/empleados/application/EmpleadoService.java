@@ -35,29 +35,34 @@ public class EmpleadoService {
     }
 
     public EmpleadoResponse crear(EmpleadoCreateRequest request) {
-        if (empleadoRepository.existsByNumEmpleado(request.numEmpleado())) {
-            throw new IllegalArgumentException("Ya existe un empleado con número " + request.numEmpleado());
+        String numEmpleado = trimToNull(request.numEmpleado());
+        if (numEmpleado == null) {
+            throw new IllegalArgumentException("El número de empleado es obligatorio");
+        }
+
+        if (empleadoRepository.existsByNumEmpleado(numEmpleado)) {
+            throw new IllegalArgumentException("Ya existe un empleado con número " + numEmpleado);
         }
 
         Boolean activo = request.activo() != null ? request.activo() : Boolean.TRUE;
 
         Empleado empleado = Empleado.builder()
-                .numEmpleado(request.numEmpleado())
-                .nombres(request.nombres())
-                .apellidoPaterno(request.apellidoPaterno())
-                .apellidoMaterno(request.apellidoMaterno())
-                .telefono(request.telefono())
-                .email(request.email())
+                .numEmpleado(numEmpleado)
+                .nombres(trimToNull(request.nombres()))
+                .apellidoPaterno(trimToNull(request.apellidoPaterno()))
+                .apellidoMaterno(trimToNull(request.apellidoMaterno()))
+                .telefono(trimToNull(request.telefono()))
+                .email(trimToNull(request.email()))
                 .fechaIngreso(request.fechaIngreso())
                 .activo(activo)
 
                 .fechaNacimiento(request.fechaNacimiento())
-                .genero(request.genero())
-                .estadoCivil(request.estadoCivil())
-                .curp(request.curp())
-                .rfc(request.rfc())
-                .nss(request.nss())
-                .foto(request.foto())
+                .genero(trimToNull(request.genero()))
+                .estadoCivil(trimToNull(request.estadoCivil()))
+                .curp(trimToNull(request.curp()))
+                .rfc(trimToNull(request.rfc()))
+                .nss(trimToNull(request.nss()))
+                .foto(trimToNull(request.foto()))
 
                 .departamentoId(request.departamentoId())
                 .puestoId(request.puestoId())
@@ -65,41 +70,34 @@ public class EmpleadoService {
                 .horarioId(request.horarioId())
                 .supervisorId(request.supervisorId())
 
-                .calle(request.calle())
-                .numExt(request.numExt())
-                .numInt(request.numInt())
-                .colonia(request.colonia())
-                .municipio(request.municipio())
-                .estado(request.estado())
-                .cp(request.cp())
-                .nacionalidad(request.nacionalidad())
-                .lugarNacimiento(request.lugarNacimiento())
+                .calle(trimToNull(request.calle()))
+                .numExt(trimToNull(request.numExt()))
+                .numInt(trimToNull(request.numInt()))
+                .colonia(trimToNull(request.colonia()))
+                .municipio(trimToNull(request.municipio()))
+                .estado(trimToNull(request.estado()))
+                .cp(trimToNull(request.cp()))
+                .nacionalidad(trimToNull(request.nacionalidad()))
+                .lugarNacimiento(trimToNull(request.lugarNacimiento()))
 
-                .escolaridad(request.escolaridad())
-                .tipoSangre(request.tipoSangre())
+                .escolaridad(trimToNull(request.escolaridad()))
+                .tipoSangre(trimToNull(request.tipoSangre()))
 
-                .contactoNombre(request.contactoNombre())
-                .contactoTelefono(request.contactoTelefono())
-                .contactoParentesco(request.contactoParentesco())
+                .contactoNombre(trimToNull(request.contactoNombre()))
+                .contactoTelefono(trimToNull(request.contactoTelefono()))
+                .contactoParentesco(trimToNull(request.contactoParentesco()))
 
-                .banco(request.banco())
-                .cuentaBancaria(request.cuentaBancaria())
-                .clabe(request.clabe())
-                .salarioBase(request.salarioBase())
-                .tipoContrato(request.tipoContrato())
-                .tipoJornada(request.tipoJornada())
+                .banco(trimToNull(request.banco()))
+                .cuentaBancaria(trimToNull(request.cuentaBancaria()))
+                .clabe(trimToNull(request.clabe()))
+                .tipoContrato(trimToNull(request.tipoContrato()))
+                .tipoJornada(trimToNull(request.tipoJornada()))
                 .fechaBaja(request.fechaBaja())
-                .motivoBaja(request.motivoBaja())
+                .motivoBaja(trimToNull(request.motivoBaja()))
 
-                .imssRegPatronal(request.imssRegPatronal())
-                .infonavitNumero(request.infonavitNumero())
-                .infonavitDescuentoTipo(request.infonavitDescuentoTipo())
-                .infonavitDescuentoValor(request.infonavitDescuentoValor())
-                .fonacotNumero(request.fonacotNumero())
-
-                .licenciaNumero(request.licenciaNumero())
-                .licenciaTipo(request.licenciaTipo())
-                .licenciaVigencia(request.licenciaVigencia())
+                .imssRegPatronal(trimToNull(request.imssRegPatronal()))
+                .infonavitNumero(trimToNull(request.infonavitNumero()))
+                .fonacotNumero(trimToNull(request.fonacotNumero()))
                 .build();
 
         Empleado guardado = empleadoRepository.save(empleado);
@@ -110,22 +108,32 @@ public class EmpleadoService {
         Empleado empleado = empleadoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Empleado no encontrado con id " + id));
 
-        empleado.setNumEmpleado(request.numEmpleado());
-        empleado.setNombres(request.nombres());
-        empleado.setApellidoPaterno(request.apellidoPaterno());
-        empleado.setApellidoMaterno(request.apellidoMaterno());
-        empleado.setTelefono(request.telefono());
-        empleado.setEmail(request.email());
+        // Validar cambio de numEmpleado sin duplicar
+        String nuevoNumEmpleado = trimToNull(request.numEmpleado());
+        if (nuevoNumEmpleado == null) {
+            throw new IllegalArgumentException("El número de empleado es obligatorio");
+        }
+        if (!nuevoNumEmpleado.equals(empleado.getNumEmpleado())
+                && empleadoRepository.existsByNumEmpleado(nuevoNumEmpleado)) {
+            throw new IllegalArgumentException("Ya existe un empleado con número " + nuevoNumEmpleado);
+        }
+
+        empleado.setNumEmpleado(nuevoNumEmpleado);
+        empleado.setNombres(trimToNull(request.nombres()));
+        empleado.setApellidoPaterno(trimToNull(request.apellidoPaterno()));
+        empleado.setApellidoMaterno(trimToNull(request.apellidoMaterno()));
+        empleado.setTelefono(trimToNull(request.telefono()));
+        empleado.setEmail(trimToNull(request.email()));
         empleado.setFechaIngreso(request.fechaIngreso());
-        empleado.setActivo(request.activo());
+        empleado.setActivo(request.activo() != null ? request.activo() : Boolean.TRUE);
 
         empleado.setFechaNacimiento(request.fechaNacimiento());
-        empleado.setGenero(request.genero());
-        empleado.setEstadoCivil(request.estadoCivil());
-        empleado.setCurp(request.curp());
-        empleado.setRfc(request.rfc());
-        empleado.setNss(request.nss());
-        empleado.setFoto(request.foto());
+        empleado.setGenero(trimToNull(request.genero()));
+        empleado.setEstadoCivil(trimToNull(request.estadoCivil()));
+        empleado.setCurp(trimToNull(request.curp()));
+        empleado.setRfc(trimToNull(request.rfc()));
+        empleado.setNss(trimToNull(request.nss()));
+        empleado.setFoto(trimToNull(request.foto()));
 
         empleado.setDepartamentoId(request.departamentoId());
         empleado.setPuestoId(request.puestoId());
@@ -133,41 +141,34 @@ public class EmpleadoService {
         empleado.setHorarioId(request.horarioId());
         empleado.setSupervisorId(request.supervisorId());
 
-        empleado.setCalle(request.calle());
-        empleado.setNumExt(request.numExt());
-        empleado.setNumInt(request.numInt());
-        empleado.setColonia(request.colonia());
-        empleado.setMunicipio(request.municipio());
-        empleado.setEstado(request.estado());
-        empleado.setCp(request.cp());
-        empleado.setNacionalidad(request.nacionalidad());
-        empleado.setLugarNacimiento(request.lugarNacimiento());
+        empleado.setCalle(trimToNull(request.calle()));
+        empleado.setNumExt(trimToNull(request.numExt()));
+        empleado.setNumInt(trimToNull(request.numInt()));
+        empleado.setColonia(trimToNull(request.colonia()));
+        empleado.setMunicipio(trimToNull(request.municipio()));
+        empleado.setEstado(trimToNull(request.estado()));
+        empleado.setCp(trimToNull(request.cp()));
+        empleado.setNacionalidad(trimToNull(request.nacionalidad()));
+        empleado.setLugarNacimiento(trimToNull(request.lugarNacimiento()));
 
-        empleado.setEscolaridad(request.escolaridad());
-        empleado.setTipoSangre(request.tipoSangre());
+        empleado.setEscolaridad(trimToNull(request.escolaridad()));
+        empleado.setTipoSangre(trimToNull(request.tipoSangre()));
 
-        empleado.setContactoNombre(request.contactoNombre());
-        empleado.setContactoTelefono(request.contactoTelefono());
-        empleado.setContactoParentesco(request.contactoParentesco());
+        empleado.setContactoNombre(trimToNull(request.contactoNombre()));
+        empleado.setContactoTelefono(trimToNull(request.contactoTelefono()));
+        empleado.setContactoParentesco(trimToNull(request.contactoParentesco()));
 
-        empleado.setBanco(request.banco());
-        empleado.setCuentaBancaria(request.cuentaBancaria());
-        empleado.setClabe(request.clabe());
-        empleado.setSalarioBase(request.salarioBase());
-        empleado.setTipoContrato(request.tipoContrato());
-        empleado.setTipoJornada(request.tipoJornada());
+        empleado.setBanco(trimToNull(request.banco()));
+        empleado.setCuentaBancaria(trimToNull(request.cuentaBancaria()));
+        empleado.setClabe(trimToNull(request.clabe()));
+        empleado.setTipoContrato(trimToNull(request.tipoContrato()));
+        empleado.setTipoJornada(trimToNull(request.tipoJornada()));
         empleado.setFechaBaja(request.fechaBaja());
-        empleado.setMotivoBaja(request.motivoBaja());
+        empleado.setMotivoBaja(trimToNull(request.motivoBaja()));
 
-        empleado.setImssRegPatronal(request.imssRegPatronal());
-        empleado.setInfonavitNumero(request.infonavitNumero());
-        empleado.setInfonavitDescuentoTipo(request.infonavitDescuentoTipo());
-        empleado.setInfonavitDescuentoValor(request.infonavitDescuentoValor());
-        empleado.setFonacotNumero(request.fonacotNumero());
-
-        empleado.setLicenciaNumero(request.licenciaNumero());
-        empleado.setLicenciaTipo(request.licenciaTipo());
-        empleado.setLicenciaVigencia(request.licenciaVigencia());
+        empleado.setImssRegPatronal(trimToNull(request.imssRegPatronal()));
+        empleado.setInfonavitNumero(trimToNull(request.infonavitNumero()));
+        empleado.setFonacotNumero(trimToNull(request.fonacotNumero()));
 
         Empleado actualizado = empleadoRepository.save(empleado);
         return toResponse(actualizado);
@@ -226,7 +227,6 @@ public class EmpleadoService {
                 e.getBanco(),
                 e.getCuentaBancaria(),
                 e.getClabe(),
-                e.getSalarioBase(),
                 e.getTipoContrato(),
                 e.getTipoJornada(),
                 e.getFechaBaja(),
@@ -234,13 +234,15 @@ public class EmpleadoService {
 
                 e.getImssRegPatronal(),
                 e.getInfonavitNumero(),
-                e.getInfonavitDescuentoTipo(),
-                e.getInfonavitDescuentoValor(),
-                e.getFonacotNumero(),
-
-                e.getLicenciaNumero(),
-                e.getLicenciaTipo(),
-                e.getLicenciaVigencia()
+                e.getFonacotNumero()
         );
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

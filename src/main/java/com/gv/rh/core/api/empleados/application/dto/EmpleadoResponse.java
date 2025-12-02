@@ -49,7 +49,6 @@ public record EmpleadoResponse(
         String banco,
         String cuentaBancaria,
         String clabe,
-        BigDecimal salarioBase,
         String tipoContrato,
         String tipoJornada,
         LocalDate fechaBaja,
@@ -57,11 +56,5 @@ public record EmpleadoResponse(
 
         String imssRegPatronal,
         String infonavitNumero,
-        String infonavitDescuentoTipo,
-        BigDecimal infonavitDescuentoValor,
-        String fonacotNumero,
-
-        String licenciaNumero,
-        String licenciaTipo,
-        LocalDate licenciaVigencia
+        String fonacotNumero
 ) {}

@@ -140,9 +140,6 @@ public class Empleado {
     @Column(name = "clabe", length = 30)
     private String clabe;
 
-    @Column(name = "salario_base", precision = 12, scale = 2)
-    private BigDecimal salarioBase;
-
     @Column(name = "tipo_contrato", length = 50)
     private String tipoContrato;
 
@@ -162,22 +159,6 @@ public class Empleado {
     @Column(name = "infonavit_numero", length = 30)
     private String infonavitNumero;
 
-    @Column(name = "infonavit_descuento_tipo", length = 20)
-    private String infonavitDescuentoTipo;
-
-    @Column(name = "infonavit_descuento_valor", precision = 12, scale = 2)
-    private BigDecimal infonavitDescuentoValor;
-
     @Column(name = "fonacot_numero", length = 30)
     private String fonacotNumero;
-
-    // ==== LICENCIA ====
-    @Column(name = "licencia_numero", length = 30)
-    private String licenciaNumero;
-
-    @Column(name = "licencia_tipo", length = 30)
-    private String licenciaTipo;
-
-    @Column(name = "licencia_vigencia")
-    private LocalDate licenciaVigencia;
 }
