@@ -42,9 +42,9 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
-                                "/api/auth/login"
+                                "/api/auth/login",
+                                "/uploads/**"      // 👉 fotos públicas
                         ).permitAll()
-                        // TODO: cuando conectemos front, afinamos si algún GET va público
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -71,7 +71,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Soporta hashes con prefijo {bcrypt} como el que tienes en la tabla users
+        // Soporta hashes con prefijo {bcrypt}
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
