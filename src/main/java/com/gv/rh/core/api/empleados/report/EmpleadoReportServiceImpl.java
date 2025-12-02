@@ -49,13 +49,11 @@ public class EmpleadoReportServiceImpl implements EmpleadoReportService {
 
             Map<String, Object> params = new HashMap<>();
 
-            // Logo corporativo (ajusta la ruta si es otra)
+            // Logo corporativo
             String logoPath = "uploads/logo/logo_gv.png";
             if (Files.exists(Paths.get(logoPath))) {
                 params.put("LOGO_PATH", logoPath);
             }
-
-            // Por ahora SIN foto, luego la activamos cuando sepamos el campo real en la entidad
 
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, dataSource);
 
@@ -66,37 +64,84 @@ public class EmpleadoReportServiceImpl implements EmpleadoReportService {
         }
     }
 
+    // ----------------- Mapeo al DTO de la ficha -----------------
+
     private EmpleadoFichaDto toFichaDto(Empleado e) {
         EmpleadoFichaDto dto = new EmpleadoFichaDto();
 
         dto.setId(e.getId());
-        dto.setNumEmpleado(e.getNumEmpleado());
+        dto.setNumEmpleado(safe(e.getNumEmpleado()));
 
+        // Nombre completo
         StringBuilder nombreCompleto = new StringBuilder();
-        if (e.getNombres() != null) {
-            nombreCompleto.append(e.getNombres()).append(" ");
+        if (e.getNombres() != null && !e.getNombres().isBlank()) {
+            nombreCompleto.append(e.getNombres().trim()).append(" ");
         }
-        if (e.getApellidoPaterno() != null) {
-            nombreCompleto.append(e.getApellidoPaterno()).append(" ");
+        if (e.getApellidoPaterno() != null && !e.getApellidoPaterno().isBlank()) {
+            nombreCompleto.append(e.getApellidoPaterno().trim()).append(" ");
         }
-        if (e.getApellidoMaterno() != null) {
-            nombreCompleto.append(e.getApellidoMaterno());
+        if (e.getApellidoMaterno() != null && !e.getApellidoMaterno().isBlank()) {
+            nombreCompleto.append(e.getApellidoMaterno().trim());
         }
-        dto.setNombresCompletos(nombreCompleto.toString().trim());
+        dto.setNombreCompleto(nombreCompleto.toString().trim());
 
-        dto.setFechaIngreso(e.getFechaIngreso());
-        dto.setTelefono(e.getTelefono());
-        dto.setEmail(e.getEmail());
+        // Iniciales para el círculo
+        dto.setIniciales(calcularIniciales(e));
 
-        // Campos que luego llenamos cuando estén amarrados en la entidad
-        dto.setPuesto(null);
-        dto.setDepartamento(null);
-        dto.setCurp(null);
-        dto.setRfc(null);
-        dto.setNss(null);
-        dto.setDireccionCompleta(null);
-        dto.setSupervisorNombre(null);
+        // Activo como boolean
+        dto.setActivo(Boolean.TRUE.equals(e.getActivo()));
+
+        // Como aún no tenemos relaciones, mostramos guion
+        dto.setPuesto("—");
+        dto.setDepartamento("—");
+        dto.setSupervisorNombre("—");
+
+        // Fecha ingreso como String
+        dto.setFechaIngreso(
+                e.getFechaIngreso() != null
+                        ? e.getFechaIngreso().toString()  // yyyy-MM-dd
+                        : ""
+        );
+
+        // Datos de contacto
+        dto.setTelefono(safe(e.getTelefono()));
+        dto.setEmail(safeUpper(e.getEmail()));
+
+        // Dirección completa (por ahora vacía)
+        dto.setDireccionCompleta(construirDireccion(e));
+
+        // Datos fiscales / seguridad social
+        dto.setCurp(safeUpper(e.getCurp()));
+        dto.setRfc(safeUpper(e.getRfc()));
+        dto.setNss(safe(e.getNss()));
 
         return dto;
+    }
+
+    // ----------------- Helpers internos -----------------
+
+    private String safe(String value) {
+        return value != null ? value : "";
+    }
+
+    private String safeUpper(String value) {
+        return value != null ? value.toUpperCase() : "";
+    }
+
+    private String calcularIniciales(Empleado e) {
+        StringBuilder sb = new StringBuilder();
+        if (e.getNombres() != null && !e.getNombres().isBlank()) {
+            sb.append(e.getNombres().trim().charAt(0));
+        }
+        if (e.getApellidoPaterno() != null && !e.getApellidoPaterno().isBlank()) {
+            sb.append(e.getApellidoPaterno().trim().charAt(0));
+        }
+        return sb.toString().toUpperCase();
+    }
+
+    private String construirDireccion(Empleado e) {
+        // Cuando tengas calle, numExt, colonia, etc., lo armas aquí.
+        // Por ahora devolvemos vacío para que Jasper no muestre "null".
+        return "";
     }
 }

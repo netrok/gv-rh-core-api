@@ -1,27 +1,27 @@
 package com.gv.rh.core.api.empleados.dto;
 
-import java.time.LocalDate;
-
 public class EmpleadoFichaDto {
 
     private Long id;
     private String numEmpleado;
-    private String nombresCompletos;
+    private String nombreCompleto;
+    private String iniciales;
+    private Boolean activo;
+
     private String puesto;
     private String departamento;
-    private LocalDate fechaIngreso;
+    private String fechaIngreso;
+    private String supervisorNombre;
+
     private String telefono;
     private String email;
+    private String direccionCompleta;
+
     private String curp;
     private String rfc;
     private String nss;
-    private String direccionCompleta;
-    private String supervisorNombre;
 
-    public EmpleadoFichaDto() {
-    }
-
-    // --- Getters & Setters ---
+    // --- getters y setters ---
 
     public Long getId() {
         return id;
@@ -39,12 +39,28 @@ public class EmpleadoFichaDto {
         this.numEmpleado = numEmpleado;
     }
 
-    public String getNombresCompletos() {
-        return nombresCompletos;
+    public String getNombreCompleto() {
+        return nombreCompleto;
     }
 
-    public void setNombresCompletos(String nombresCompletos) {
-        this.nombresCompletos = nombresCompletos;
+    public void setNombreCompleto(String nombreCompleto) {
+        this.nombreCompleto = nombreCompleto;
+    }
+
+    public String getIniciales() {
+        return iniciales;
+    }
+
+    public void setIniciales(String iniciales) {
+        this.iniciales = iniciales;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
     }
 
     public String getPuesto() {
@@ -63,12 +79,20 @@ public class EmpleadoFichaDto {
         this.departamento = departamento;
     }
 
-    public LocalDate getFechaIngreso() {
+    public String getFechaIngreso() {
         return fechaIngreso;
     }
 
-    public void setFechaIngreso(LocalDate fechaIngreso) {
+    public void setFechaIngreso(String fechaIngreso) {
         this.fechaIngreso = fechaIngreso;
+    }
+
+    public String getSupervisorNombre() {
+        return supervisorNombre;
+    }
+
+    public void setSupervisorNombre(String supervisorNombre) {
+        this.supervisorNombre = supervisorNombre;
     }
 
     public String getTelefono() {
@@ -85,6 +109,14 @@ public class EmpleadoFichaDto {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getDireccionCompleta() {
+        return direccionCompleta;
+    }
+
+    public void setDireccionCompleta(String direccionCompleta) {
+        this.direccionCompleta = direccionCompleta;
     }
 
     public String getCurp() {
@@ -109,21 +141,5 @@ public class EmpleadoFichaDto {
 
     public void setNss(String nss) {
         this.nss = nss;
-    }
-
-    public String getDireccionCompleta() {
-        return direccionCompleta;
-    }
-
-    public void setDireccionCompleta(String direccionCompleta) {
-        this.direccionCompleta = direccionCompleta;
-    }
-
-    public String getSupervisorNombre() {
-        return supervisorNombre;
-    }
-
-    public void setSupervisorNombre(String supervisorNombre) {
-        this.supervisorNombre = supervisorNombre;
     }
 }

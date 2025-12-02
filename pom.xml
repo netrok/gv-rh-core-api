@@ -12,7 +12,6 @@
         <relativePath/>
     </parent>
 
-    <!-- Coordenadas del proyecto -->
     <groupId>com.gv.rh</groupId>
     <artifactId>gv-rh-core-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
@@ -21,6 +20,13 @@
 
     <properties>
         <java.version>21</java.version>
+        <!-- Para evitar broncas de acentos/caracteres -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Opcional: centralizar versiones de libs externas -->
+        <jasperreports.version>6.21.0</jasperreports.version>
+        <springdoc.version>2.6.0</springdoc.version>
+        <jjwt.version>0.11.5</jjwt.version>
     </properties>
 
     <dependencies>
@@ -30,13 +36,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- JasperReports -->
         <dependency>
             <groupId>net.sf.jasperreports</groupId>
             <artifactId>jasperreports</artifactId>
-            <version>6.21.0</version>
+            <version>${jasperreports.version}</version>
         </dependency>
-
-
 
         <!-- JPA -->
         <dependency>
@@ -50,7 +55,7 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- Validation (jakarta.validation) -->
+        <!-- Validation -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
@@ -70,7 +75,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.6.0</version>
+            <version>${springdoc.version}</version>
         </dependency>
 
         <!-- PostgreSQL -->
@@ -99,18 +104,18 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
-            <version>0.11.5</version>
+            <version>${jjwt.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <version>0.11.5</version>
+            <version>${jjwt.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <version>0.11.5</version>
+            <version>${jjwt.version}</version>
             <scope>runtime</scope>
         </dependency>
 

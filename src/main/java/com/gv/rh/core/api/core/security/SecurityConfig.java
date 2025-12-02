@@ -4,6 +4,7 @@ import com.gv.rh.core.api.auth.jwt.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -36,6 +37,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // públicos
                         .requestMatchers(
                                 "/health",
                                 "/actuator/health",
@@ -43,8 +45,14 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/api/auth/login",
-                                "/uploads/**"      // 👉 fotos públicas
+                                "/uploads/**"      // fotos públicas
                         ).permitAll()
+
+                        // ficha PDF de empleado
+                        .requestMatchers(HttpMethod.GET, "/api/empleados/*/ficha.pdf")
+                        .hasAnyAuthority("SUPERADMIN", "ADMIN", "RRHH")
+
+                        // aquí puedes ir agregando más reglas específicas
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -71,7 +79,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Soporta hashes con prefijo {bcrypt}
+        // Soporta hashes con prefijo {bcrypt}, etc.
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
