@@ -31,3 +31,5 @@ build/
 
 # Config local
 src/main/resources/application.yml
+
+uploads/
