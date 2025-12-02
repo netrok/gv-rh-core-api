@@ -27,9 +27,13 @@ out/
 
 ### Gradle (por si usas)
 build/
-!
 
-# Config local
+### Archivos del sistema / misceláneos
+.DS_Store
+*.log
+
+### Config local (no versionar credenciales)
 src/main/resources/application.yml
 
+### Archivos subidos por la app (fotos, etc.)
 uploads/
