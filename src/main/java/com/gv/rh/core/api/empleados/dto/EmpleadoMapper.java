@@ -2,7 +2,15 @@ package com.gv.rh.core.api.empleados.dto;
 
 import com.gv.rh.core.api.empleados.domain.Empleado;
 
+import java.time.format.DateTimeFormatter;
+
+// =====================
+// Mapper para DTO
+// =====================
 public class EmpleadoMapper {
+
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     // ... otros métodos que ya tengas (toDto, toEntity, etc.)
 
@@ -12,35 +20,88 @@ public class EmpleadoMapper {
         dto.setId(empleado.getId());
         dto.setNumEmpleado(empleado.getNumEmpleado());
 
-        // Antes: setNombresCompletos(...)
-        // Ahora: setNombreCompleto(...)
-        String nombreCompleto = (empleado.getNombres() != null ? empleado.getNombres() : "") +
-                (empleado.getApellidoPaterno() != null ? " " + empleado.getApellidoPaterno() : "") +
-                (empleado.getApellidoMaterno() != null ? " " + empleado.getApellidoMaterno() : "");
-        dto.setNombreCompleto(nombreCompleto.trim());
+        // Nombre completo ya bien armado
+        dto.setNombreCompleto(buildNombreCompleto(empleado));
 
-        // Antes: dto.setFechaIngreso(empleado.getFechaIngreso()); // LocalDate
-        // Ahora lo convertimos a String
-        dto.setFechaIngreso(
-                empleado.getFechaIngreso() != null
-                        ? empleado.getFechaIngreso().toString()   // yyyy-MM-dd
-                        : null
-        );
+        // Fecha de ingreso formateada dd/MM/yyyy
+        dto.setFechaIngreso(formatDate(empleado.getFechaIngreso()));
 
         dto.setTelefono(empleado.getTelefono());
         dto.setEmail(empleado.getEmail());
 
-        // Estos los puedes ir llenando cuando tengas bien las relaciones
-        dto.setPuesto(null);             // empleado.getPuesto().getNombre() si ya existe
-        dto.setDepartamento(null);       // empleado.getDepartamento().getNombre()
-        dto.setSupervisorNombre(null);   // supervisor si aplica
+        // Relaciones básicas
+        dto.setPuesto(
+                empleado.getPuesto() != null
+                        ? nullSafe(empleado.getPuesto().getNombre())
+                        : null
+        );
 
+        dto.setDepartamento(
+                empleado.getDepartamento() != null
+                        ? nullSafe(empleado.getDepartamento().getNombre())
+                        : null
+        );
+
+        dto.setSupervisorNombre(buildSupervisorNombre(empleado));
+
+        // Identificadores
         dto.setCurp(empleado.getCurp());
         dto.setRfc(empleado.getRfc());
         dto.setNss(empleado.getNss());
 
-        dto.setDireccionCompleta(null);  // aquí luego armamos la dirección formateada
+        // Dirección formateada
+        dto.setDireccionCompleta(buildDireccionCompleta(empleado));
 
         return dto;
+    }
+
+    // ===== Helpers reutilizables =====
+
+    static String nullSafe(String value) {
+        return value != null ? value : "";
+    }
+
+    static String formatDate(java.time.LocalDate date) {
+        return date != null ? DATE_FORMAT.format(date) : null;
+    }
+
+    static String buildNombreCompleto(Empleado e) {
+        StringBuilder sb = new StringBuilder();
+        if (e.getNombres() != null) sb.append(e.getNombres());
+        if (e.getApellidoPaterno() != null) sb.append(" ").append(e.getApellidoPaterno());
+        if (e.getApellidoMaterno() != null) sb.append(" ").append(e.getApellidoMaterno());
+        return sb.toString().trim();
+    }
+
+    static String buildDireccionCompleta(Empleado e) {
+        String calle = nullSafe(e.getCalle());
+        String numExt = nullSafe(e.getNumExt());
+        String numInt = nullSafe(e.getNumInt());
+        String numIntParte = !numInt.isBlank() ? " Int. " + numInt : "";
+
+        String colonia = nullSafe(e.getColonia());
+        String cp = nullSafe(e.getCp());
+        String municipio = nullSafe(e.getMunicipio());
+        String estado = nullSafe(e.getEstado());
+
+        String dir = String.format(
+                "%s %s%s, %s, C.P. %s, %s, %s",
+                calle, numExt, numIntParte, colonia, cp, municipio, estado
+        );
+
+        return dir.replaceAll("\\s+", " ").trim();
+    }
+
+    static String buildSupervisorNombre(Empleado e) {
+        if (e.getSupervisor() == null) {
+            return null;
+        }
+        Empleado sup = e.getSupervisor();
+        StringBuilder sb = new StringBuilder();
+        if (sup.getNombres() != null) sb.append(sup.getNombres());
+        if (sup.getApellidoPaterno() != null) sb.append(" ").append(sup.getApellidoPaterno());
+        if (sup.getApellidoMaterno() != null) sb.append(" ").append(sup.getApellidoMaterno());
+        String result = sb.toString().trim();
+        return result.isEmpty() ? null : result;
     }
 }
