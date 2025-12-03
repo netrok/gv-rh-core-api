@@ -99,3 +99,12 @@ CREATE INDEX IF NOT EXISTS idx_empleados_departamento_id
 
 CREATE INDEX IF NOT EXISTS idx_empleados_supervisor_id
     ON empleados (supervisor_id);
+
+-- ============================================
+-- Nuevos campos de nombres "planos" para catálogos en empleados
+-- ============================================
+
+ALTER TABLE empleados
+    ADD COLUMN IF NOT EXISTS departamento_nombre VARCHAR(150),
+    ADD COLUMN IF NOT EXISTS puesto_nombre       VARCHAR(150),
+    ADD COLUMN IF NOT EXISTS supervisor_nombre   VARCHAR(200);

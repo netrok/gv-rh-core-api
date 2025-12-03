@@ -12,8 +12,9 @@ public class EmpleadoMapper {
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    // ... otros métodos que ya tengas (toDto, toEntity, etc.)
-
+    // =====================
+    // Ficha del empleado
+    // =====================
     public static EmpleadoFichaDto toFichaDto(Empleado empleado) {
         EmpleadoFichaDto dto = new EmpleadoFichaDto();
 
@@ -29,19 +30,11 @@ public class EmpleadoMapper {
         dto.setTelefono(empleado.getTelefono());
         dto.setEmail(empleado.getEmail());
 
-        // Relaciones básicas
-        dto.setPuesto(
-                empleado.getPuesto() != null
-                        ? nullSafe(empleado.getPuesto().getNombre())
-                        : null
-        );
+        // Puesto / Departamento usando campos planos
+        dto.setPuesto(nullSafe(empleado.getPuestoNombre()));
+        dto.setDepartamento(nullSafe(empleado.getDepartamentoNombre()));
 
-        dto.setDepartamento(
-                empleado.getDepartamento() != null
-                        ? nullSafe(empleado.getDepartamento().getNombre())
-                        : null
-        );
-
+        // Supervisor (nombre plano)
         dto.setSupervisorNombre(buildSupervisorNombre(empleado));
 
         // Identificadores
@@ -93,15 +86,11 @@ public class EmpleadoMapper {
     }
 
     static String buildSupervisorNombre(Empleado e) {
-        if (e.getSupervisor() == null) {
+        String supervisorNombre = e.getSupervisorNombre();
+        if (supervisorNombre == null) {
             return null;
         }
-        Empleado sup = e.getSupervisor();
-        StringBuilder sb = new StringBuilder();
-        if (sup.getNombres() != null) sb.append(sup.getNombres());
-        if (sup.getApellidoPaterno() != null) sb.append(" ").append(sup.getApellidoPaterno());
-        if (sup.getApellidoMaterno() != null) sb.append(" ").append(sup.getApellidoMaterno());
-        String result = sb.toString().trim();
+        String result = supervisorNombre.trim();
         return result.isEmpty() ? null : result;
     }
 }

@@ -84,6 +84,16 @@ public class Empleado {
     @Column(name = "supervisor_id")
     private Long supervisorId;
 
+    // ==== NOMBRES DE CATÁLOGO (para ficha / reportes) ====
+    @Column(name = "puesto_nombre", length = 150)
+    private String puestoNombre;
+
+    @Column(name = "departamento_nombre", length = 150)
+    private String departamentoNombre;
+
+    @Column(name = "supervisor_nombre", length = 200)
+    private String supervisorNombre;
+
     // ==== DOMICILIO ====
     @Column(name = "calle", length = 150)
     private String calle;
