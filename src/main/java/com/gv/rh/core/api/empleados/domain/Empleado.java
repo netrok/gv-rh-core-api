@@ -5,9 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Builder.Default;   // 👈 IMPORTANTE
+import lombok.Builder.Default;   // Para usar @Default
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -43,7 +42,7 @@ public class Empleado {
     @Column(name = "fecha_ingreso")
     private LocalDate fechaIngreso;
 
-    @Default                             // 👈 este es el truco
+    @Default
     @Column(name = "activo", nullable = false)
     private Boolean activo = Boolean.TRUE;
 

@@ -1,24 +1,18 @@
 package com.gv.rh.core.api.empleados.report;
 
-import com.gv.rh.core.api.core.error.NotFoundException;
 import com.gv.rh.core.api.empleados.domain.Empleado;
 import com.gv.rh.core.api.empleados.domain.EmpleadoRepository;
-import com.gv.rh.core.api.empleados.dto.EmpleadoFichaDto;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 public class EmpleadoReportServiceImpl implements EmpleadoReportService {
@@ -31,117 +25,162 @@ public class EmpleadoReportServiceImpl implements EmpleadoReportService {
 
     @Override
     public byte[] generarFichaEmpleado(Long empleadoId) {
-        Empleado empleado = empleadoRepository.findById(empleadoId)
-                .orElseThrow(() -> new NotFoundException("Empleado no encontrado con id " + empleadoId));
-
-        EmpleadoFichaDto dto = toFichaDto(empleado);
-
         try {
-            InputStream jrxmlStream = getClass().getResourceAsStream("/reports/empleado_ficha.jrxml");
-            if (jrxmlStream == null) {
-                throw new IllegalStateException("No se encontró la plantilla /reports/empleado_ficha.jrxml");
+            // 1) Obtener empleado de BD
+            Empleado emp = empleadoRepository.findById(empleadoId)
+                    .orElseThrow(() -> new IllegalArgumentException("Empleado no encontrado: " + empleadoId));
+
+            // 2) Mapear a DTO de reporte
+            EmpleadoFichaReportRow row = mapToReportRow(emp);
+
+            // 3) Cargar JRXML desde classpath
+            ClassPathResource jrxml = new ClassPathResource("reports/empleado_ficha.jrxml");
+            try (InputStream is = jrxml.getInputStream()) {
+                JasperReport jasperReport = JasperCompileManager.compileReport(is);
+
+                // 4) Parámetros
+                Map<String, Object> params = new HashMap<>();
+                // TODO: cuando tengas el logo físico, ajusta esto:
+                // ClassPathResource logo = new ClassPathResource("static/images/logo_gv.png");
+                // params.put("LOGO_PATH", logo.getFile().getAbsolutePath());
+                params.put("LOGO_PATH", "");
+
+                // 5) DataSource (una sola fila)
+                JRBeanCollectionDataSource ds =
+                        new JRBeanCollectionDataSource(Collections.singletonList(row));
+
+                JasperPrint print = JasperFillManager.fillReport(jasperReport, params, ds);
+
+                // 6) Exportar a PDF
+                return JasperExportManager.exportReportToPdf(print);
             }
 
-            JasperReport jasperReport = JasperCompileManager.compileReport(jrxmlStream);
-
-            JRBeanCollectionDataSource dataSource =
-                    new JRBeanCollectionDataSource(List.of(dto));
-
-            Map<String, Object> params = new HashMap<>();
-
-            // Logo corporativo
-            String logoPath = "uploads/logo/logo_gv.png";
-            if (Files.exists(Paths.get(logoPath))) {
-                params.put("LOGO_PATH", logoPath);
-            }
-
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, dataSource);
-
-            return JasperExportManager.exportReportToPdf(jasperPrint);
-
-        } catch (JRException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error al generar ficha PDF del empleado", e);
         }
     }
 
-    // ----------------- Mapeo al DTO de la ficha -----------------
+    private EmpleadoFichaReportRow mapToReportRow(Empleado emp) {
+        EmpleadoFichaReportRow r = new EmpleadoFichaReportRow();
 
-    private EmpleadoFichaDto toFichaDto(Empleado e) {
-        EmpleadoFichaDto dto = new EmpleadoFichaDto();
+        // === Identidad
+        r.setNombreCompleto(buildNombreCompleto(emp));
+        r.setNumEmpleado(emp.getNumEmpleado());
+        r.setIniciales(buildIniciales(emp));
+        r.setActivo(emp.getActivo());
 
-        dto.setId(e.getId());
-        dto.setNumEmpleado(safe(e.getNumEmpleado()));
+        // === Puesto / organización
+        // De momento solo tenemos IDs. Los mostramos como texto simple o los dejamos vacíos.
+        r.setPuesto(emp.getPuestoId() != null ? "ID " + emp.getPuestoId() : "");
+        r.setDepartamento(emp.getDepartamentoId() != null ? "ID " + emp.getDepartamentoId() : "");
+        r.setFechaIngreso(formatDate(emp.getFechaIngreso()));
+        r.setSupervisorNombre(emp.getSupervisorId() != null ? "ID " + emp.getSupervisorId() : "");
 
-        // Nombre completo
-        StringBuilder nombreCompleto = new StringBuilder();
-        if (e.getNombres() != null && !e.getNombres().isBlank()) {
-            nombreCompleto.append(e.getNombres().trim()).append(" ");
-        }
-        if (e.getApellidoPaterno() != null && !e.getApellidoPaterno().isBlank()) {
-            nombreCompleto.append(e.getApellidoPaterno().trim()).append(" ");
-        }
-        if (e.getApellidoMaterno() != null && !e.getApellidoMaterno().isBlank()) {
-            nombreCompleto.append(e.getApellidoMaterno().trim());
-        }
-        dto.setNombreCompleto(nombreCompleto.toString().trim());
+        // === Contacto / domicilio
+        r.setTelefono(emp.getTelefono());
+        r.setEmail(emp.getEmail());
+        r.setDireccionCompleta(buildDireccion(emp));
 
-        // Iniciales para el círculo
-        dto.setIniciales(calcularIniciales(e));
+        // === Identificadores personales
+        r.setCurp(emp.getCurp());
+        r.setRfc(emp.getRfc());
+        r.setNss(emp.getNss());
 
-        // Activo como boolean
-        dto.setActivo(Boolean.TRUE.equals(e.getActivo()));
+        // === Datos personales extra
+        r.setFechaNacimiento(formatDate(emp.getFechaNacimiento()));
+        r.setGenero(emp.getGenero());
+        r.setEstadoCivil(emp.getEstadoCivil());
+        r.setNacionalidad(emp.getNacionalidad());
+        r.setLugarNacimiento(emp.getLugarNacimiento());
+        r.setTipoSangre(emp.getTipoSangre());
 
-        // Como aún no tenemos relaciones, mostramos guion
-        dto.setPuesto("—");
-        dto.setDepartamento("—");
-        dto.setSupervisorNombre("—");
+        // === Datos laborales / bancarios
+        r.setBanco(emp.getBanco());
+        r.setCuentaBancaria(emp.getCuentaBancaria());
+        r.setClabe(emp.getClabe());
+        r.setTipoContrato(emp.getTipoContrato());
+        r.setTipoJornada(emp.getTipoJornada());
+        r.setFechaBaja(formatDate(emp.getFechaBaja()));
+        r.setMotivoBaja(emp.getMotivoBaja());
 
-        // Fecha ingreso como String
-        dto.setFechaIngreso(
-                e.getFechaIngreso() != null
-                        ? e.getFechaIngreso().toString()  // yyyy-MM-dd
-                        : ""
-        );
+        // === Seguridad social / créditos
+        r.setImssRegPatronal(emp.getImssRegPatronal());
+        r.setInfonavitNumero(emp.getInfonavitNumero());
+        r.setFonacotNumero(emp.getFonacotNumero());
 
-        // Datos de contacto
-        dto.setTelefono(safe(e.getTelefono()));
-        dto.setEmail(safeUpper(e.getEmail()));
+        // === Contacto emergencia
+        r.setContactoNombre(emp.getContactoNombre());
+        r.setContactoParentesco(emp.getContactoParentesco());
+        r.setContactoTelefono(emp.getContactoTelefono());
 
-        // Dirección completa (por ahora vacía)
-        dto.setDireccionCompleta(construirDireccion(e));
-
-        // Datos fiscales / seguridad social
-        dto.setCurp(safeUpper(e.getCurp()));
-        dto.setRfc(safeUpper(e.getRfc()));
-        dto.setNss(safe(e.getNss()));
-
-        return dto;
+        return r;
     }
 
-    // ----------------- Helpers internos -----------------
+    // ================= Helpers =================
 
-    private String safe(String value) {
-        return value != null ? value : "";
-    }
-
-    private String safeUpper(String value) {
-        return value != null ? value.toUpperCase() : "";
-    }
-
-    private String calcularIniciales(Empleado e) {
+    private String buildNombreCompleto(Empleado e) {
         StringBuilder sb = new StringBuilder();
         if (e.getNombres() != null && !e.getNombres().isBlank()) {
-            sb.append(e.getNombres().trim().charAt(0));
+            sb.append(e.getNombres().trim());
         }
         if (e.getApellidoPaterno() != null && !e.getApellidoPaterno().isBlank()) {
-            sb.append(e.getApellidoPaterno().trim().charAt(0));
+            if (!sb.isEmpty()) sb.append(" ");
+            sb.append(e.getApellidoPaterno().trim());
         }
-        return sb.toString().toUpperCase();
+        if (e.getApellidoMaterno() != null && !e.getApellidoMaterno().isBlank()) {
+            if (!sb.isEmpty()) sb.append(" ");
+            sb.append(e.getApellidoMaterno().trim());
+        }
+        return sb.toString();
     }
 
-    private String construirDireccion(Empleado e) {
-        // Cuando tengas calle, numExt, colonia, etc., lo armas aquí.
-        // Por ahora devolvemos vacío para que Jasper no muestre "null".
-        return "";
+    private String formatDate(Object d) {
+        if (d == null) return "";
+        try {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            if (d instanceof LocalDate ld) {
+                return ld.format(fmt);
+            }
+            if (d instanceof LocalDateTime ldt) {
+                return ldt.toLocalDate().format(fmt);
+            }
+            if (d instanceof Date date) {
+                return new SimpleDateFormat("dd/MM/yyyy").format(date);
+            }
+            return d.toString();
+        } catch (Exception ex) {
+            return "";
+        }
+    }
+
+    private String buildIniciales(Empleado e) {
+        if (e == null) return "";
+        String nombres = e.getNombres();
+        String apePat  = e.getApellidoPaterno();
+        String apeMat  = e.getApellidoMaterno();
+
+        StringBuilder sb = new StringBuilder();
+        if (nombres != null && !nombres.isBlank()) {
+            sb.append(Character.toUpperCase(nombres.trim().charAt(0)));
+        }
+        if (apePat != null && !apePat.isBlank()) {
+            sb.append(Character.toUpperCase(apePat.trim().charAt(0)));
+        }
+        if (apeMat != null && !apeMat.isBlank()) {
+            sb.append(Character.toUpperCase(apeMat.trim().charAt(0)));
+        }
+        return sb.toString();
+    }
+
+    private String buildDireccion(Empleado e) {
+        List<String> partes = new ArrayList<>();
+        if (e.getCalle() != null && !e.getCalle().isBlank()) partes.add(e.getCalle().trim());
+        if (e.getNumExt() != null && !e.getNumExt().isBlank()) partes.add("No. " + e.getNumExt().trim());
+        if (e.getColonia() != null && !e.getColonia().isBlank()) partes.add(e.getColonia().trim());
+        if (e.getMunicipio() != null && !e.getMunicipio().isBlank()) partes.add(e.getMunicipio().trim());
+        if (e.getEstado() != null && !e.getEstado().isBlank()) partes.add(e.getEstado().trim());
+        if (e.getCp() != null && !e.getCp().isBlank()) partes.add("CP " + e.getCp().trim());
+        return String.join(", ", partes);
     }
 }
