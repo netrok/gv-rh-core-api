@@ -4,10 +4,13 @@ import com.gv.rh.core.api.empleados.domain.Empleado;
 import com.gv.rh.core.api.empleados.domain.EmpleadoRepository;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,26 +37,58 @@ public class EmpleadoReportServiceImpl implements EmpleadoReportService {
             EmpleadoFichaReportRow row = mapToReportRow(emp);
 
             // 3) Cargar JRXML desde classpath
-            ClassPathResource jrxml = new ClassPathResource("reports/empleado_ficha.jrxml");
-            try (InputStream is = jrxml.getInputStream()) {
-                JasperReport jasperReport = JasperCompileManager.compileReport(is);
-
-                // 4) Parámetros
-                Map<String, Object> params = new HashMap<>();
-                // TODO: cuando tengas el logo físico, ajusta esto:
-                // ClassPathResource logo = new ClassPathResource("static/images/logo_gv.png");
-                // params.put("LOGO_PATH", logo.getFile().getAbsolutePath());
-                params.put("LOGO_PATH", "");
-
-                // 5) DataSource (una sola fila)
-                JRBeanCollectionDataSource ds =
-                        new JRBeanCollectionDataSource(Collections.singletonList(row));
-
-                JasperPrint print = JasperFillManager.fillReport(jasperReport, params, ds);
-
-                // 6) Exportar a PDF
-                return JasperExportManager.exportReportToPdf(print);
+            InputStream jrxmlStream = getClass().getResourceAsStream("/reports/empleado_ficha.jrxml");
+            if (jrxmlStream == null) {
+                throw new IllegalStateException("No se encontró /reports/empleado_ficha.jrxml en el classpath");
             }
+            JasperReport jasperReport = JasperCompileManager.compileReport(jrxmlStream);
+
+            // 4) Parámetros
+            Map<String, Object> params = new HashMap<>();
+
+            // LOGO CORPORATIVO (parámetro LOGO_GV tipo java.io.InputStream en el JRXML)
+            InputStream logoStream = getClass().getResourceAsStream("/reports/img/logo-gv.png");
+            if (logoStream != null) {
+                params.put("LOGO_GV", logoStream);
+            }
+
+            // FOTO DEL EMPLEADO (parámetro FOTO_EMPLEADO tipo java.io.InputStream en el JRXML)
+            InputStream fotoStream = null;
+
+            // Suponemos que emp.getFoto() devuelve un String con el nombre/ruta del archivo
+            String fotoPath = emp.getFoto(); // <-- AQUÍ estaba el problema antes
+
+            if (fotoPath != null && !fotoPath.isBlank()) {
+                try {
+                    // Si en WebMvcConfig mapeaste "uploads" como raíz, usamos eso
+                    Path uploadsRoot = Paths.get("uploads"); // ajusta si tu raíz es distinta
+                    Path fullPath = uploadsRoot.resolve(fotoPath).normalize();
+
+                    if (Files.exists(fullPath)) {
+                        fotoStream = Files.newInputStream(fullPath);
+                    }
+                } catch (IOException e) {
+                    // Aquí podrías loggear un warning si quieres
+                    // log.warn("No se pudo leer la foto del empleado", e);
+                }
+            }
+
+            // Si no hay foto, usamos placeholder
+            if (fotoStream == null) {
+                fotoStream = getClass().getResourceAsStream("/reports/img/foto-placeholder.png");
+            }
+
+            if (fotoStream != null) {
+                params.put("FOTO_EMPLEADO", fotoStream);
+            }
+
+            // 5) DataSource (una sola fila)
+            JRBeanCollectionDataSource ds =
+                    new JRBeanCollectionDataSource(Collections.singletonList(row));
+
+            // 6) Llenar y exportar a PDF
+            JasperPrint print = JasperFillManager.fillReport(jasperReport, params, ds);
+            return JasperExportManager.exportReportToPdf(print);
 
         } catch (Exception e) {
             throw new RuntimeException("Error al generar ficha PDF del empleado", e);
@@ -70,7 +105,6 @@ public class EmpleadoReportServiceImpl implements EmpleadoReportService {
         r.setActivo(emp.getActivo());
 
         // === Puesto / organización
-        // De momento solo tenemos IDs. Los mostramos como texto simple o los dejamos vacíos.
         r.setPuesto(emp.getPuestoId() != null ? "ID " + emp.getPuestoId() : "");
         r.setDepartamento(emp.getDepartamentoId() != null ? "ID " + emp.getDepartamentoId() : "");
         r.setFechaIngreso(formatDate(emp.getFechaIngreso()));
@@ -124,11 +158,11 @@ public class EmpleadoReportServiceImpl implements EmpleadoReportService {
             sb.append(e.getNombres().trim());
         }
         if (e.getApellidoPaterno() != null && !e.getApellidoPaterno().isBlank()) {
-            if (!sb.isEmpty()) sb.append(" ");
+            if (sb.length() > 0) sb.append(" ");
             sb.append(e.getApellidoPaterno().trim());
         }
         if (e.getApellidoMaterno() != null && !e.getApellidoMaterno().isBlank()) {
-            if (!sb.isEmpty()) sb.append(" ");
+            if (sb.length() > 0) sb.append(" ");
             sb.append(e.getApellidoMaterno().trim());
         }
         return sb.toString();

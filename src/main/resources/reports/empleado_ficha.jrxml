@@ -14,22 +14,26 @@
         bottomMargin="20"
         whenResourceMissingType="Empty">
 
-    <!-- ===== Estilos (DEBEN ir antes de parámetros / fields) ===== -->
+    <!-- ===== Estilos ===== -->
     <style name="Base" fontName="Helvetica" fontSize="10"/>
     <style name="Label" style="Base" isBold="true" forecolor="#666666"/>
     <style name="Value" style="Base" isBold="false"/>
     <style name="SectionTitle" style="Base" isBold="true" fontSize="12" forecolor="#374151"/>
     <style name="HeaderBackground" mode="Opaque" backcolor="#111827"/>
     <style name="HeaderTitle" style="Base" isBold="true" fontSize="16" forecolor="#FFFFFF"/>
-    <style name="HeaderSubtitle" style="Base" fontSize="9" forecolor="#D1D5DB" horizontalAlignment="Right"/>
+
+    <style name="HeaderSubtitle"
+           style="Base"
+           fontSize="9"
+           forecolor="#D1D5DB"/>
+
     <style name="BadgeActivo" style="Base" isBold="true" mode="Opaque" backcolor="#10B981" forecolor="#FFFFFF"/>
     <style name="BadgeInactivo" style="Base" isBold="true" mode="Opaque" backcolor="#EF4444" forecolor="#FFFFFF"/>
-    <style name="BadgeText" style="Base" isBold="true" fontSize="9" forecolor="#FFFFFF"/>
 
     <!-- ===== Parámetros ===== -->
     <parameter name="LOGO_PATH" class="java.lang.String"/>
 
-    <!-- ===== Campos DTO actuales ===== -->
+    <!-- ===== Campos DTO ===== -->
     <field name="nombreCompleto" class="java.lang.String"/>
     <field name="numEmpleado" class="java.lang.String"/>
     <field name="iniciales" class="java.lang.String"/>
@@ -48,7 +52,6 @@
     <field name="rfc" class="java.lang.String"/>
     <field name="nss" class="java.lang.String"/>
 
-    <!-- Campos extra -->
     <field name="fechaNacimiento" class="java.lang.String"/>
     <field name="genero" class="java.lang.String"/>
     <field name="estadoCivil" class="java.lang.String"/>
@@ -91,6 +94,7 @@
 
             <textField pattern="dd/MM/yyyy HH:mm">
                 <reportElement x="410" y="25" width="135" height="18" style="HeaderSubtitle"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"/>
                 <textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
             </textField>
         </band>
@@ -113,8 +117,8 @@
                 </graphicElement>
             </ellipse>
 
-            <textField>
-                <reportElement x="30" y="60" width="90" height="40" style="Base"/>
+            <textField isBlankWhenNull="true">
+                <reportElement x="30" y="60" width="90" height="40"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                     <font size="18" isBold="true"/>
                 </textElement>
@@ -122,36 +126,36 @@
             </textField>
 
             <!-- Nombre / num -->
-            <textField>
-                <reportElement x="140" y="35" width="300" height="20" style="Base"/>
+            <textField isBlankWhenNull="true">
+                <reportElement x="140" y="35" width="300" height="20"/>
                 <textElement>
                     <font size="14" isBold="true"/>
                 </textElement>
                 <textFieldExpression><![CDATA[$F{nombreCompleto}]]></textFieldExpression>
             </textField>
 
-            <textField>
-                <reportElement x="140" y="60" width="250" height="16" style="Base"/>
+            <textField isBlankWhenNull="true">
+                <reportElement x="140" y="60" width="250" height="16"/>
                 <textFieldExpression><![CDATA["Núm. empleado: " + $F{numEmpleado}]]></textFieldExpression>
             </textField>
 
-            <!-- Badge ACTIVO / INACTIVO -->
-            <textField>
-                <reportElement x="450" y="35" width="80" height="18" style="BadgeActivo"/>
+            <!-- Badge único ACTIVO / INACTIVO con styleExpression -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="450" y="35" width="80" height="18">
+                    <styleExpression><![CDATA[
+                        ($F{activo} != null && $F{activo})
+                            ? "BadgeActivo"
+                            : "BadgeInactivo"
+                    ]]></styleExpression>
+                </reportElement>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                     <font size="9" isBold="true"/>
                 </textElement>
-                <textFieldExpression><![CDATA["ACTIVO"]]></textFieldExpression>
-                <printWhenExpression><![CDATA[$F{activo} != null && $F{activo}]]></printWhenExpression>
-            </textField>
-
-            <textField>
-                <reportElement x="450" y="35" width="80" height="18" style="BadgeInactivo"/>
-                <textElement textAlignment="Center" verticalAlignment="Middle">
-                    <font size="9" isBold="true"/>
-                </textElement>
-                <textFieldExpression><![CDATA["INACTIVO"]]></textFieldExpression>
-                <printWhenExpression><![CDATA[$F{activo} != null && !$F{activo}]]></printWhenExpression>
+                <textFieldExpression><![CDATA[
+                    ($F{activo} != null && $F{activo})
+                        ? "ACTIVO"
+                        : "INACTIVO"
+                ]]></textFieldExpression>
             </textField>
 
             <!-- ===== DATOS GENERALES ===== -->
@@ -165,7 +169,7 @@
                 <reportElement x="30" y="155" width="80" height="14" style="Label"/>
                 <text><![CDATA[Puesto]]></text>
             </staticText>
-            <textField>
+            <textField isBlankWhenNull="true">
                 <reportElement x="115" y="155" width="180" height="14" style="Value"/>
                 <textFieldExpression><![CDATA[$F{puesto}]]></textFieldExpression>
             </textField>
@@ -174,7 +178,7 @@
                 <reportElement x="310" y="155" width="90" height="14" style="Label"/>
                 <text><![CDATA[Departamento]]></text>
             </staticText>
-            <textField>
+            <textField isBlankWhenNull="true">
                 <reportElement x="405" y="155" width="120" height="14" style="Value"/>
                 <textFieldExpression><![CDATA[$F{departamento}]]></textFieldExpression>
             </textField>
@@ -184,7 +188,7 @@
                 <reportElement x="30" y="173" width="90" height="14" style="Label"/>
                 <text><![CDATA[Fecha ingreso]]></text>
             </staticText>
-            <textField>
+            <textField isBlankWhenNull="true">
                 <reportElement x="115" y="173" width="180" height="14" style="Value"/>
                 <textFieldExpression><![CDATA[$F{fechaIngreso}]]></textFieldExpression>
             </textField>
@@ -193,7 +197,7 @@
                 <reportElement x="310" y="173" width="80" height="14" style="Label"/>
                 <text><![CDATA[Supervisor]]></text>
             </staticText>
-            <textField>
+            <textField isBlankWhenNull="true">
                 <reportElement x="405" y="173" width="120" height="14" style="Value"/>
                 <textFieldExpression><![CDATA[$F{supervisorNombre}]]></textFieldExpression>
             </textField>
@@ -203,7 +207,7 @@
                 <reportElement x="30" y="191" width="90" height="14" style="Label"/>
                 <text><![CDATA[F. nacimiento]]></text>
             </staticText>
-            <textField>
+            <textField isBlankWhenNull="true">
                 <reportElement x="115" y="191" width="180" height="14" style="Value"/>
                 <textFieldExpression><![CDATA[$F{fechaNacimiento}]]></textFieldExpression>
             </textField>
@@ -212,7 +216,7 @@
                 <reportElement x="310" y="191" width="80" height="14" style="Label"/>
                 <text><![CDATA[Género]]></text>
             </staticText>
-            <textField>
+            <textField isBlankWhenNull="true">
                 <reportElement x="405" y="191" width="120" height="14" style="Value"/>
                 <textFieldExpression><![CDATA[$F{genero}]]></textFieldExpression>
             </textField>
@@ -222,7 +226,7 @@
                 <reportElement x="30" y="209" width="90" height="14" style="Label"/>
                 <text><![CDATA[Estado civil]]></text>
             </staticText>
-            <textField>
+            <textField isBlankWhenNull="true">
                 <reportElement x="115" y="209" width="180" height="14" style="Value"/>
                 <textFieldExpression><![CDATA[$F{estadoCivil}]]></textFieldExpression>
             </textField>
@@ -231,7 +235,7 @@
                 <reportElement x="310" y="209" width="80" height="14" style="Label"/>
                 <text><![CDATA[Nacionalidad]]></text>
             </staticText>
-            <textField>
+            <textField isBlankWhenNull="true">
                 <reportElement x="405" y="209" width="120" height="14" style="Value"/>
                 <textFieldExpression><![CDATA[$F{nacionalidad}]]></textFieldExpression>
             </textField>
@@ -241,7 +245,7 @@
                 <reportElement x="30" y="227" width="110" height="14" style="Label"/>
                 <text><![CDATA[Lugar nacimiento]]></text>
             </staticText>
-            <textField>
+            <textField isBlankWhenNull="true">
                 <reportElement x="140" y="227" width="155" height="14" style="Value"/>
                 <textFieldExpression><![CDATA[$F{lugarNacimiento}]]></textFieldExpression>
             </textField>
@@ -250,7 +254,7 @@
                 <reportElement x="310" y="227" width="90" height="14" style="Label"/>
                 <text><![CDATA[Tipo sangre]]></text>
             </staticText>
-            <textField>
+            <textField isBlankWhenNull="true">
                 <reportElement x="405" y="227" width="120" height="14" style="Value"/>
                 <textFieldExpression><![CDATA[$F{tipoSangre}]]></textFieldExpression>
             </textField>
@@ -269,7 +273,7 @@
                 <reportElement x="30" y="283" width="80" height="14" style="Label"/>
                 <text><![CDATA[Teléfono]]></text>
             </staticText>
-            <textField>
+            <textField isBlankWhenNull="true">
                 <reportElement x="115" y="283" width="155" height="14" style="Value"/>
                 <textFieldExpression><![CDATA[$F{telefono}]]></textFieldExpression>
             </textField>
@@ -278,5 +282,232 @@
                 <reportElement x="310" y="283" width="120" height="14" style="Label"/>
                 <text><![CDATA[Correo electrónico]]></text>
             </staticText>
-            <textField>
-                <reportElement x="430" y="283" width="95" height="1
+            <textField isBlankWhenNull="true">
+                <reportElement x="430" y="283" width="95" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{email}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="30" y="301" width="80" height="14" style="Label"/>
+                <text><![CDATA[Dirección]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="115" y="301" width="410" height="28" style="Value"/>
+                <textElement verticalAlignment="Top"/>
+                <textFieldExpression><![CDATA[$F{direccionCompleta}]]></textFieldExpression>
+            </textField>
+
+            <line>
+                <reportElement x="30" y="335" width="495" height="1" forecolor="#E5E7EB"/>
+            </line>
+
+            <!-- ===== DOCUMENTOS Y SEGURIDAD SOCIAL ===== -->
+            <staticText>
+                <reportElement x="30" y="350" width="250" height="16" style="SectionTitle"/>
+                <text><![CDATA[Documentos y seguridad social]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="30" y="370" width="60" height="14" style="Label"/>
+                <text><![CDATA[CURP]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="95" y="370" width="180" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{curp}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="295" y="370" width="50" height="14" style="Label"/>
+                <text><![CDATA[RFC]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="350" y="370" width="170" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{rfc}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="30" y="388" width="60" height="14" style="Label"/>
+                <text><![CDATA[NSS]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="95" y="388" width="180" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{nss}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="295" y="388" width="110" height="14" style="Label"/>
+                <text><![CDATA[Reg. patronal IMSS]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="410" y="388" width="110" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{imssRegPatronal}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="30" y="406" width="100" height="14" style="Label"/>
+                <text><![CDATA[INFONAVIT núm.]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="135" y="406" width="140" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{infonavitNumero}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="295" y="406" width="100" height="14" style="Label"/>
+                <text><![CDATA[FONACOT núm.]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="400" y="406" width="120" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{fonacotNumero}]]></textFieldExpression>
+            </textField>
+
+            <line>
+                <reportElement x="30" y="430" width="495" height="1" forecolor="#E5E7EB"/>
+            </line>
+
+            <!-- ===== DATOS LABORALES / BANCO ===== -->
+            <staticText>
+                <reportElement x="30" y="445" width="250" height="16" style="SectionTitle"/>
+                <text><![CDATA[Datos laborales y bancarios]]></text>
+            </staticText>
+
+            <!-- Banco / Cuenta -->
+            <staticText>
+                <reportElement x="30" y="465" width="60" height="14" style="Label"/>
+                <text><![CDATA[Banco]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="95" y="465" width="180" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{banco}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="295" y="465" width="100" height="14" style="Label"/>
+                <text><![CDATA[Cuenta bancaria]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="400" y="465" width="120" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{cuentaBancaria}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="30" y="483" width="60" height="14" style="Label"/>
+                <text><![CDATA[CLABE]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="95" y="483" width="180" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{clabe}]]></textFieldExpression>
+            </textField>
+
+            <!-- Tipo contrato / jornada -->
+            <staticText>
+                <reportElement x="295" y="483" width="90" height="14" style="Label"/>
+                <text><![CDATA[Tipo contrato]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="390" y="483" width="130" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{tipoContrato}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="30" y="501" width="90" height="14" style="Label"/>
+                <text><![CDATA[Tipo jornada]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="125" y="501" width="150" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{tipoJornada}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="295" y="501" width="90" height="14" style="Label"/>
+                <text><![CDATA[Fecha baja]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="390" y="501" width="130" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{fechaBaja}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="30" y="519" width="90" height="14" style="Label"/>
+                <text><![CDATA[Motivo baja]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="125" y="519" width="395" height="28" style="Value"/>
+                <textElement verticalAlignment="Top"/>
+                <textFieldExpression><![CDATA[$F{motivoBaja}]]></textFieldExpression>
+            </textField>
+
+            <line>
+                <reportElement x="30" y="552" width="495" height="1" forecolor="#E5E7EB"/>
+            </line>
+
+            <!-- ===== CONTACTO DE EMERGENCIA ===== -->
+            <staticText>
+                <reportElement x="30" y="567" width="250" height="16" style="SectionTitle"/>
+                <text><![CDATA[Contacto de emergencia]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="30" y="587" width="80" height="14" style="Label"/>
+                <text><![CDATA[Nombre]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="115" y="587" width="200" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{contactoNombre}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="330" y="587" width="80" height="14" style="Label"/>
+                <text><![CDATA[Parentesco]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="415" y="587" width="110" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{contactoParentesco}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="30" y="605" width="80" height="14" style="Label"/>
+                <text><![CDATA[Teléfono]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="115" y="605" width="200" height="14" style="Value"/>
+                <textFieldExpression><![CDATA[$F{contactoTelefono}]]></textFieldExpression>
+            </textField>
+
+        </band>
+    </detail>
+
+    <!-- ================= PIE (FIRMAS / FOLIO) ================= -->
+    <summary>
+        <band height="80">
+
+            <!-- Firma empleado -->
+            <staticText>
+                <reportElement x="60" y="0" width="180" height="12" style="Label"/>
+                <text><![CDATA[Firma del empleado]]></text>
+            </staticText>
+            <line>
+                <reportElement x="60" y="16" width="180" height="1" forecolor="#9CA3AF"/>
+            </line>
+
+            <!-- Firma RH -->
+            <staticText>
+                <reportElement x="360" y="0" width="180" height="12" style="Label"/>
+                <text><![CDATA[Firma Recursos Humanos]]></text>
+            </staticText>
+            <line>
+                <reportElement x="360" y="16" width="180" height="1" forecolor="#9CA3AF"/>
+            </line>
+
+            <!-- Folio -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="60" y="32" width="250" height="12" style="Value"/>
+                <textFieldExpression><![CDATA[
+                    "Folio: FICHA-" + $F{numEmpleado}
+                ]]></textFieldExpression>
+            </textField>
+
+        </band>
+    </summary>
+
+</jasperReport>
