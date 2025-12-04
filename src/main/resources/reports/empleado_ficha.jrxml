@@ -95,7 +95,7 @@
 
     <!-- ===== DETALLE ===== -->
     <detail>
-        <band height="640" splitType="Stretch">
+        <band height="640">
 
             <!-- Tarjeta principal -->
             <rectangle>
@@ -139,20 +139,16 @@
 
             <!-- Badge ACTIVO / INACTIVO -->
             <textField isBlankWhenNull="true">
-                <reportElement x="430" y="45" width="90" height="20">
-                    <styleExpression><![CDATA[
-($F{activo} != null && $F{activo})
-    ? "BadgeActivo"
-    : "BadgeInactivo"
-                    ]]></styleExpression>
-                </reportElement>
+                <reportElement x="430" y="45" width="90" height="20"/>
+                <!-- styleExpression dinámico VA AQUÍ, no dentro de reportElement -->
+                <styleExpression><![CDATA[
+($F{activo} != null && $F{activo}) ? "BadgeActivo" : "BadgeInactivo"
+                ]]></styleExpression>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                     <font size="9.0" isBold="true"/>
                 </textElement>
                 <textFieldExpression><![CDATA[
-($F{activo} != null && $F{activo})
-    ? "ACTIVO"
-    : "INACTIVO"
+($F{activo} != null && $F{activo}) ? "ACTIVO" : "INACTIVO"
                 ]]></textFieldExpression>
             </textField>
 
